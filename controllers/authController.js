@@ -3,6 +3,19 @@ const bcrypt = require("bcrypt")
 const { signToken } = require("../lib/jwt")
 const { roleEnum } = require("../configs/constant.js")
 const fs = require("fs")
+const {
+  TENANT_PROFILE_PATH,
+  USER_PROFILE_PATH,
+} = require("../configs/constant/unlinkFilePath")
+const {
+  UNIQUE_CONSTRAINT,
+  TARGET_EMAIL,
+  TARGET_USERNAME,
+} = require("../configs/constant/databaseError")
+const {
+  EMAIL_VALIDATOR,
+  PASSWORD_VALIDATOR,
+} = require("../configs/constant/regexValidator")
 
 const prisma = new PrismaClient()
 
@@ -19,15 +32,13 @@ const authController = {
         })
       }
 
-      if (!email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      if (!email.match(EMAIL_VALIDATOR)) {
         return res.status(400).json({
           message: "Incorrect e-mail format",
         })
       }
 
-      if (
-        !password.match(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/)
-      ) {
+      if (!password.match(PASSWORD_VALIDATOR)) {
         return res.status(400).json({
           message:
             "Password length minimum 8 ,must have 1 number, 1 capital and 1 symbol",
@@ -50,13 +61,19 @@ const authController = {
         message: "User registered",
       })
     } catch (err) {
-      if (err.code === "P2002" && err.meta?.target?.includes("email")) {
+      if (
+        err.code === UNIQUE_CONSTRAINT &&
+        err.meta?.target?.includes(TARGET_EMAIL)
+      ) {
         return res.status(400).json({
           message: "Email has already been taken",
         })
       }
 
-      if (err.code === "P2002" && err.meta?.target?.includes("username")) {
+      if (
+        err.code === UNIQUE_CONSTRAINT &&
+        err.meta?.target?.includes(TARGET_USERNAME)
+      ) {
         return res.status(400).json({
           message: "Username has already been taken",
         })
@@ -79,15 +96,13 @@ const authController = {
         })
       }
 
-      if (!email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      if (!email.match(EMAIL_VALIDATOR)) {
         return res.status(400).json({
           message: "Incorrect e-mail format",
         })
       }
 
-      if (
-        !password.match(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/)
-      ) {
+      if (!password.match(PASSWORD_VALIDATOR)) {
         return res.status(400).json({
           message:
             "Password length minimum 8 ,must have 1 number, 1 capital and 1 symbol",
@@ -110,13 +125,19 @@ const authController = {
         message: "Tenant register",
       })
     } catch (err) {
-      if (err.code === "P2002" && err.meta?.target?.includes("email")) {
+      if (
+        err.code === UNIQUE_CONSTRAINT &&
+        err.meta?.target?.includes(TARGET_EMAIL)
+      ) {
         return res.status(400).json({
           message: "Email has already been taken",
         })
       }
 
-      if (err.code === "P2002" && err.meta?.target?.includes("username")) {
+      if (
+        err.code === UNIQUE_CONSTRAINT &&
+        err.meta?.target?.includes(TARGET_USERNAME)
+      ) {
         return res.status(400).json({
           message: "Username has already been taken",
         })
@@ -322,11 +343,7 @@ const authController = {
 
       const updatePassword = bcrypt.hashSync(newPassword, 5)
 
-      if (
-        !newPassword.match(
-          /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/
-        )
-      ) {
+      if (!newPassword.match(PASSWORD_VALIDATOR)) {
         return res.status(400).json({
           message:
             "Password length minimum 8 ,must have 1 number, 1 capital and 1 symbol",
@@ -373,11 +390,7 @@ const authController = {
 
       const updatePassword = bcrypt.hashSync(newPassword, 5)
 
-      if (
-        !newPassword.match(
-          /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/
-        )
-      ) {
+      if (!newPassword.match(PASSWORD_VALIDATOR)) {
         return res.status(400).json({
           message:
             "Password length minimum 8 ,must have 1 number, 1 capital and 1 symbol",
@@ -406,7 +419,6 @@ const authController = {
     }
   },
   uploadProfileUser: async (req, res) => {
-    const path = "public/"
     try {
       const foundUserProfile = await prisma.user.findFirst({
         where: {
@@ -415,7 +427,7 @@ const authController = {
       })
 
       if (foundUserProfile.profilePicUrl) {
-        fs.unlinkSync(path + foundUserProfile.profilePicUrl)
+        fs.unlinkSync(USER_PROFILE_PATH + foundUserProfile.profilePicUrl)
       }
 
       const uploadProfileUrl = await prisma.user.update({
@@ -440,7 +452,6 @@ const authController = {
     }
   },
   uploadProfileTenant: async (req, res) => {
-    const path = "public/"
     try {
       const foundTenantProfile = await prisma.user.findFirst({
         where: {
@@ -449,7 +460,7 @@ const authController = {
       })
 
       if (foundTenantProfile.profilePicUrl) {
-        fs.unlinkSync(path + foundTenantProfile.profilePicUrl)
+        fs.unlinkSync(TENANT_PROFILE_PATH + foundTenantProfile.profilePicUrl)
       }
 
       const uploadProfileUrl = await prisma.user.update({
