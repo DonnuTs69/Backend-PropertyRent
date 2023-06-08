@@ -26,20 +26,30 @@ model User {
 }
 
 model Properties {
-  id          Int        @id @default(autoincrement())
-  name        String
-  description String     @db.Text
-  rules       String     @db.Text
-  facilities  String     @db.Text
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  deleted     Boolean    @default(false)
-  user        User       @relation(fields: [userId], references: [id])
-  userId      String
-  category    Categories @relation(fields: [categoryId], references: [id])
-  categoryId  Int
-  province    Provincies @relation(fields: [provinceId], references: [id])
-  provinceId  Int
+  id             Int              @id @default(autoincrement())
+  name           String
+  description    String           @db.Text
+  rules          String           @db.Text
+  facilities     String           @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deleted        Boolean          @default(false)
+  user           User             @relation(fields: [userId], references: [id])
+  userId         String
+  category       Categories       @relation(fields: [categoryId], references: [id])
+  categoryId     Int
+  province       Provincies       @relation(fields: [provinceId], references: [id])
+  provinceId     Int
+  propertyImages PropertyImages[]
+  city           Cities?          @relation(fields: [cityId], references: [id])
+  cityId         Int?
+}
+
+model PropertyImages {
+  id             Int         @id @default(autoincrement())
+  propertyPicUrl String
+  property       Properties? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId     Int?
 }
 
 model Categories {
@@ -52,7 +62,7 @@ model Categories {
 
 model Provincies {
   id        Int          @id @default(autoincrement())
-  provincy  String
+  provincy  String       @unique
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   property  Properties[]
@@ -60,12 +70,13 @@ model Provincies {
 }
 
 model Cities {
-  id         Int        @id @default(autoincrement())
+  id         Int          @id @default(autoincrement())
   city       String
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  province   Provincies @relation(fields: [provinceId], references: [id])
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  province   Provincies   @relation(fields: [provinceId], references: [id])
   provinceId Int
+  peroperty  Properties[]
 }
 
 enum Role {

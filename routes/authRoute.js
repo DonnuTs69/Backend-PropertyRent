@@ -7,6 +7,10 @@ const {
   verifyRoleTenant,
   validateProfileUpload,
 } = require("../middlewares/authMiddleware")
+const {
+  TENANT_PROFILE_PATH,
+  USER_PROFILE_PATH,
+} = require("../configs/constant/uploadFilePath")
 
 router.post("/register/user", authController.registerUser)
 router.post("/register/tenant", authController.registerTenant)
@@ -42,7 +46,7 @@ router.patch(
   "/user/profile",
   verifyToken,
   verifyRoleUser,
-  validateProfileUpload,
+  validateProfileUpload(USER_PROFILE_PATH),
   authController.uploadProfileUser
 )
 
@@ -50,7 +54,7 @@ router.patch(
   "/tenant/profile",
   verifyToken,
   verifyRoleTenant,
-  validateProfileUpload,
+  validateProfileUpload(TENANT_PROFILE_PATH),
   authController.uploadProfileTenant
 )
 
